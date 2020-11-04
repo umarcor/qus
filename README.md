@@ -16,7 +16,7 @@
 
 *qemu-user-static* (**qus**) is a compilation of utilities, examples and references to build and execute OCI images (aka [docker](https://www.docker.com/) images) for foreign architectures using [QEMU](https://www.qemu.org/)'s user-mode emulation.
 
-- Ready-to-use docker images are provided for each of seven host architectures officially supported by Docker, Inc. or built by official images ([docker-library/official-images: Architectures other than amd64?](https://github.com/docker-library/official-images#architectures-other-than-amd64)): `amd64`, `i386`, `arm64v8`, `arm32v7`, `arm32v6`, `s390x` and `ppc64le`.
+- Ready-to-use docker images are provided for each of eight host architectures officially supported by Docker, Inc. or built by official images ([docker-library/official-images: Architectures other than amd64?](https://github.com/docker-library/official-images#architectures-other-than-amd64)): `amd64`, `i386`, `arm64v8`, `arm32v7`, `arm32v6`, `s390x`, `ppc64le` and `mips64le`.
 - Multiple minimal working setups to build and execute `arm64v8` containers on `amd64` are configured and tested on [GitHub Actions](https://github.com/dbhi/qus/actions) and on [Travis CI](https://travis-ci.com/dbhi/qus/builds). The full flow is public, for other users to learn and adapt these resources to their needs.
 - These resources are tested on GNU/Linux and Windows 10 (Docker Desktop). Contributions to test them on other host OSs are welcome!
 

@@ -24,186 +24,6 @@ export DOCKER_BUILDKIT=1
 
 #--
 
-pkg_arch () {
-  case "$BUILD_ARCH" in
-    fedora)
-      case "$1" in
-        amd64)
-          echo x86_64 ;;
-        i386)
-          echo i686 ;;
-        arm64v8)
-          echo aarch64 ;;
-        arm32v7)
-          echo armv7hl ;;
-        ppc64*)
-          echo ppc64le ;;
-        *)
-          echo "$1"
-      esac
-    ;;
-    debian)
-      case "$1" in
-        x86_64)
-          echo amd64 ;;
-        arm64v8)
-          echo arm64 ;;
-        arm32v7)
-          echo armhf ;;
-        arm32v6|arm32v5)
-          echo armel ;;
-        ppc64*)
-          echo ppc64el ;;
-        *)
-          echo "$1"
-      esac
-    ;;
-  esac
-}
-
-guest_arch() {
-  case "$1" in
-   amd64)
-     echo x86_64 ;;
-   arm64)
-     echo aarch64 ;;
-   armhf|armel|armv7hl)
-     echo arm ;;
-   ppc64*)
-     echo ppc64le ;;
-   *)
-     echo "$1"
-  esac
-}
-
-#--
-
-getSingleQemuUserStatic () {
-  case "$BUILD_ARCH" in
-    fedora)
-      URL="https://kojipkgs.fedoraproject.org/packages/qemu/${VERSION}/${FEDORA_VERSION}/$(pkg_arch ${HOST_ARCH})/qemu-user-static-${VERSION}-${FEDORA_VERSION}.$(pkg_arch ${HOST_ARCH}).rpm"
-      echo "$URL"
-      curl -fsSL "$URL" | rpm2cpio - | zstdcat | cpio -dimv "*usr/bin*qemu-$(guest_arch $(pkg_arch ${BASE_ARCH}))-static"
-      mv ./usr/bin/qemu-$(guest_arch $(pkg_arch ${BASE_ARCH}))-static ./
-      rm -rf ./usr/bin
-    ;;
-    debian)
-      URL="http://ftp.debian.org/debian/pool/main/q/qemu/qemu-user-static_${VERSION}${DEBIAN_VERSION}_$(pkg_arch ${HOST_ARCH}).deb"
-      echo "$URL"
-      curl -fsSL "$URL" \
-      | dpkg --fsys-tarfile - \
-      | tar xvf - --wildcards ./usr/bin/qemu-$(guest_arch $(pkg_arch ${BASE_ARCH}))-static --strip-components=3
-    ;;
-  esac
-}
-
-getAndRegisterSingleQemuUserStatic () {
-  print_start "Get single qemu-user-static"
-  getSingleQemuUserStatic
-
-  print_start "Register binfmt interpreter for single qemu-user-static"
-  $(command -v sudo) QEMU_BIN_DIR="$(pwd)" ./register.sh -- -r
-  $(command -v sudo) QEMU_BIN_DIR="$(pwd)" ./register.sh -s -- -p "$(guest_arch $(pkg_arch $BASE_ARCH))"
-
-  print_start "List binfmt interpreters"
-  $(command -v sudo) ./register.sh -l -- -t
-}
-
-build_register () {
-  case "$BASE_ARCH" in
-    amd64|arm64v8|arm32v7|arm32v6|i386|ppc64le|s390x)
-      HOST_LIB="${BASE_ARCH}/"
-    ;;
-    *)
-      HOST_LIB="skip"
-  esac
-
-  if [ -n "$CI" ]; then
-    case "$BASE_ARCH" in
-      arm64v8|arm32v7|arm32v6|ppc64le|s390x)
-        getAndRegisterSingleQemuUserStatic
-    esac
-  fi
-
-  [ "$HOST_LIB" = "skip" ] && {
-    printf "$ANSI_YELLOW! Skipping creation of $IMG[-register] because HOST_LIB <$HOST_LIB>.$ANSI_NOCOLOR\n"
-  } || {
-    print_start "Build $IMG-register"
-    docker build -t $IMG-register . -f-<<EOF
-FROM ${HOST_LIB}busybox
-#RUN mkdir /qus
-ENV QEMU_BIN_DIR=/qus/bin
-COPY ./register.sh /qus/register
-ADD https://raw.githubusercontent.com/umarcor/qemu/series-qemu-binfmt-conf/scripts/qemu-binfmt-conf.sh /qus/qemu-binfmt-conf.sh
-RUN chmod +x /qus/qemu-binfmt-conf.sh
-ENTRYPOINT ["/qus/register"]
-EOF
-
-    print_start "Build $IMG"
-    docker build -t $IMG . -f-<<EOF
-FROM $IMG-register
-COPY --from="$IMG"-pkg /usr/bin/qemu-* /qus/bin/
-VOLUME /qus
-EOF
-  }
-}
-
-#--
-
-build () {
-  [ -d releases ] && rm -rf releases
-  mkdir -p releases
-
-  [ -d bin-static ] && rm -rf bin-static
-  mkdir -p bin-static
-
-  cd bin-static
-
-  case "$BUILD_ARCH" in
-    fedora)
-      PACKAGE_URI=${PACKAGE_URI:-https://kojipkgs.fedoraproject.org/packages/qemu/${VERSION}/${FEDORA_VERSION}/$(pkg_arch $BASE_ARCH)/qemu-user-static-${VERSION}-${FEDORA_VERSION}.$(pkg_arch $BASE_ARCH).rpm}
-      print_start "Extract $PACKAGE_URI"
-
-      # https://bugzilla.redhat.com/show_bug.cgi?id=837945
-      curl -fsSL "$PACKAGE_URI" | rpm2cpio - | zstdcat | cpio -dimv "*usr/bin*qemu-*-static"
-
-      mv ./usr/bin/* ./
-      rm -rf ./usr/bin
-    ;;
-    debian)
-      PACKAGE_URI=${PACKAGE_URI:-http://ftp.debian.org/debian/pool/main/q/qemu/qemu-user-static_${VERSION}${DEBIAN_VERSION}_$(pkg_arch $BASE_ARCH).deb}
-      print_start "Extract $PACKAGE_URI"
-      curl -fsSL "$PACKAGE_URI" | dpkg --fsys-tarfile - | tar xvf - --wildcards ./usr/bin/qemu-*-static --strip-components=3
-    ;;
-  esac
-
-  for F in $(ls); do
-    tar -czf "../releases/${F}_${BASE_ARCH}.tgz" "$F"
-  done
-
-  case "$BUILD_ARCH" in
-    fedora)
-      IMG="${REPO}:${BASE_ARCH}-f${VERSION}"
-    ;;
-    debian)
-      IMG="${REPO}:${BASE_ARCH}-d${VERSION}"
-    ;;
-  esac
-
-  cd ..
-
-  if [ -z "$QUS_RELEASE" ]; then
-    print_start "Build $IMG-pkg"
-    docker build -t "$IMG"-pkg ./bin-static -f-<<EOF
-FROM scratch
-COPY ./* /usr/bin/
-EOF
-    build_register
-  fi
-}
-
-#--
-
 manifests () {
   for BUILD in latest debian fedora; do
 
@@ -214,7 +34,7 @@ manifests () {
       ;;
       debian|latest)
         MAN_VERSION="d${DEF_DEBIAN_VERSION}"
-        MAN_ARCH_LIST="$MAN_ARCH_LIST arm32v6"
+        MAN_ARCH_LIST="$MAN_ARCH_LIST arm32v6 mips64el"
       ;;
     esac
     case "$BUILD" in
@@ -267,9 +87,7 @@ assets() {
   mkdir -p ../releases
   for BASE_ARCH in $ARCH_LIST; do
     print_start "Build $BASE_ARCH" "$ANSI_MAGENTA"
-    unset PACKAGE_URI
-    build_cfg
-    build
+    ./cli/cli.py build -s debian $BASE_ARCH
     print_start "Copy $BASE_ARCH" "$ANSI_MAGENTA"
     cp -vr releases/* ../releases/
   done
@@ -341,12 +159,9 @@ build_cfg () {
 #--
 
 case "$1" in
-  -b|-m)
+  -m)
     build_cfg
-    case "$1" in
-      -m) manifests ;;
-      *)  build
-    esac
+    manifests
   ;;
   -a)
     assets;

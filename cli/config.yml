@@ -1,0 +1,120 @@
+# Copyright 2020-2021 Unai Martinez-Corral <unai.martinezcorral@ehu.eus>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+versions:
+
+  default: &ver_def
+    debian: &ver_debian_def
+      base: "5.1"
+      rev: "+dfsg-4+b2"
+    fedora: &ver_fedora_def
+      base: "5.1.0"
+      rev: "7.fc34"
+
+archs:
+
+  amd64:
+    version:
+      debian: &ver_debian_b3
+        base: "5.1"
+        rev: "+dfsg-4+b3"
+      fedora: *ver_fedora_def
+    alias:
+      - x86_64
+      - x86-64
+      - AMD64
+    fedora: x86_64
+    qemu: x86_64
+
+  arm64v8:
+    version: *ver_def
+    alias:
+      - aarch64
+      - armv8
+      - ARMv8
+    debian: arm64
+    fedora: aarch64
+    qemu: aarch64
+
+  arm32v7:
+    version: *ver_def
+    alias:
+      - aarch32
+      - armv8l
+      - armv7
+      - armv7l
+      - ARMv7
+      - armhf
+      - armv7hl
+    debian: armhf
+    fedora: armv7hl
+    qemu: arm
+
+  arm32v6:
+    version: *ver_def
+    alias:
+      - ARMv6
+      - armel
+    debian: armel
+    qemu: arm
+
+  arm32v5:
+    version: *ver_def
+    alias:
+      - ARMv5
+    debian: armel
+    qemu: arm
+
+  i386:
+    version:
+      debian: *ver_debian_b3
+      fedora: *ver_fedora_def
+    alias:
+      - i686
+      - x86
+    fedora: i686
+
+  ppc64le:
+    version: *ver_def
+    alias:
+      - ppc64
+      - ppc64el
+      - POWER8
+    debian: ppc64el
+
+  s390x:
+    version:
+      debian: &ver_debian_b1
+        base: "5.1"
+        rev: "+dfsg-4+b1"
+      fedora: *ver_fedora_def
+    alias:
+
+  mipsel:
+    version:
+      debian: *ver_debian_b1
+      fedora: *ver_fedora_def
+    alias:
+      - mips
+
+  mips64le:
+    version:
+      debian: *ver_debian_b1
+      fedora: *ver_fedora_def
+    alias:
+      - mips64
+      - mips64el
+    debian: mips64el
+    fedora: mips64el
+    qemu: mips64el
