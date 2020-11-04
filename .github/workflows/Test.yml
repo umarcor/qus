@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: '0 0 * * 5'
 
+env:
+  DOCKER_BUILDKIT: 1
+
 jobs:
 
 
@@ -60,7 +63,13 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - run: |
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install setuptools wheel
+        python3 -m pip install -r cli/requirements.txt
+
+    - name: Get all Debian packages and buld test binaries
+      run: |
         ./run.sh -a
         ./generate_bin_tests.sh
         cp test-* releases/
@@ -72,12 +81,12 @@ jobs:
 
     - run: ./cli/cli.py debian
 
-    - uses: eine/tip@master
-      if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
-      with:
-        token: ${{ github.token }}
-        files: releases/*
-        snapshots: false
+#    - uses: eine/tip@master
+#      if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+#      with:
+#        token: ${{ github.token }}
+#        files: releases/*
+#        snapshots: false
 
     - run: ./cli/cli.py assets
 
@@ -129,20 +138,27 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - run: BUILD=${{ matrix.src }} ./run.sh -b
-      env:
-        BASE_ARCH: ${{ matrix.arch }}
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install setuptools wheel
+        python3 -m pip install -r cli/requirements.txt
 
-    - name: Login to DockerHub
-      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USER }}
-        password: ${{ secrets.DOCKER_PASS }}
+    - name: Build
+      run: ./cli/cli.py build -s ${{ matrix.src }} ${{ matrix.arch }}
 
-    - name: Deploy to DockerHub
-      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
-      run: docker push aptman/qus
+    - name: Docker images
+      run: docker images
+
+#    - name: Login to DockerHub
+#      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
+#      uses: docker/login-action@v1
+#      with:
+#        username: ${{ secrets.DOCKER_USER }}
+#        password: ${{ secrets.DOCKER_PASS }}
+#
+#    - name: Deploy to DockerHub
+#      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
+#      run: docker push aptman/qus
 
 
   Manifests:
@@ -162,18 +178,18 @@ jobs:
             cfg.seek(0)
             dump(data, cfg, indent=2)
 
-    - name: Login to DockerHub
-      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USER }}
-        password: ${{ secrets.DOCKER_PASS }}
-
-    - uses: actions/checkout@v2
-
-    - name: Update manifests
-      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
-      run: ./run.sh -m
+#    - name: Login to DockerHub
+#      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
+#      uses: docker/login-action@v1
+#      with:
+#        username: ${{ secrets.DOCKER_USER }}
+#        password: ${{ secrets.DOCKER_PASS }}
+#
+#    - uses: actions/checkout@v2
+#
+#    - name: Update manifests
+#      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
+#      run: ./run.sh -m
 
 
   Action-All:

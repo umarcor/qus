@@ -1,2 +1,4 @@
 pyAttributes
+pyyaml
+requests
 tabulate

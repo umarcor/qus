@@ -16,7 +16,7 @@ In fact, the entrypoint to the following docker images is a wrapper^[See [`regis
 
 ## Manifests
 
-Manifests are provided for the following hosts: `amd64`, `arm64v8`, `arm32v7`, `arm32v6`, `i386`, `s390x` or `ppc64le`. That is, any of the target architectures provided by QEMU can be used on any of those hosts.
+Manifests are provided for the following hosts: `amd64`, `arm64v8`, `arm32v7`, `arm32v6`, `i386`, `s390x`, `ppc64le` or `mips64le`. That is, any of the target architectures provided by QEMU can be used on any of those hosts.
 
 The procedure to generate each image involves extracting pre-built binaries and packaging them in container images, along with helper scripts. Hence, multiple images are generated in the process:
 
@@ -36,7 +36,7 @@ For each `HOST_ARCH`, an image named `${HOST_ARCH}-d${VERSION}${TAG}` is publish
 `latest`/default versions above correspond to these Debian variants. Therefore, running `aptman/qus` on an `amd64` host is equivalent to running `aptman/qus:d5.0` or `aptman/qus:amd64-d5.0`.
 </aside>
 
-Apart from those, `aptman/qus:mips-pkg` and `aptman/qus:mips64el-pkg` are also available.
+Apart from those, `aptman/qus:mipsel-d${VERSION}-pkg` is also available.
 
 ## Fedora [5.0.0]
 

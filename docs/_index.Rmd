@@ -67,7 +67,7 @@ knitr::include_graphics("logo/logo.png")
 **GH** [docker](https://github.com/docker), [opencontainers](https://github.com/opencontainers), [qemu](https://github.com/qemu)
 </aside>
 
-Ready-to-use docker images are provided for each of seven host architectures officially supported by Docker, Inc. or built by official images [@docker-official-images]: `amd64`, `i386`, `arm64v8`, `arm32v7`, `arm32v6`, `s390x` and `ppc64le`.
+Ready-to-use docker images are provided for each of eight host architectures officially supported by Docker, Inc. or built by official images [@docker-official-images]: `amd64`, `i386`, `arm64v8`, `arm32v7`, `arm32v6`, `s390x`, `ppc64le` and `mips64le`.
 
 Multiple minimal working setups to build and execute `arm64v8` containers on `amd64` are configured and tested on Continuous Integration (CI) services (GitHub Actions [@gha] and Travis CI [@travis-ci]). The full flow is public, for other users to learn and adapt these resources to their needs. See [github.com/dbhi/qus/actions](https://github.com/dbhi/qus/actions) and/or [travis-ci.com/dbhi/qus/builds](https://travis-ci.com/dbhi/qus/builds).
 
