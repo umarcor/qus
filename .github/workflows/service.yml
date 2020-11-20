@@ -1,0 +1,66 @@
+name: 'service'
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - run: |
+        cat > service.sh <<-EOF
+        #!/bin/sh
+
+        /qus/register -s -- -p
+        tail -f /dev/null
+        EOF
+        chmod +x service.sh
+
+        docker build -t aptman/qus:service . -f- <<-EOF
+        FROM aptman/qus
+        COPY ./service.sh /qus/service
+        ENTRYPOINT ["/qus/service"]
+        EOF
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+
+    - name: Deploy to DockerHub
+      if: github.event_name != 'pull_request' && github.repository == 'dbhi/qus'
+      run: docker push aptman/qus:service
+
+
+  container-step:
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      qemu:
+        image: aptman/qus:service
+        options: --privileged
+    steps:
+
+    - run: docker ps -a
+
+    - uses: docker://arm64v8/ubuntu:20.04
+      with:
+        args: uname -a
+
+
+  container-job:
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      qemu:
+        image: aptman/qus:service
+        options: --privileged
+    container: arm64v8/ubuntu:20.04
+    steps:
+
+    - run: uname -a
