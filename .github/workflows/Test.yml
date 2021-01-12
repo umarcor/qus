@@ -140,6 +140,7 @@ jobs:
 
     - name: Install Python dependencies
       run: |
+        python3 --version
         python3 -m pip install setuptools wheel
         python3 -m pip install -r cli/requirements.txt
 
