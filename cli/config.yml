@@ -16,20 +16,16 @@ versions:
 
   default: &ver_def
     debian: &ver_debian_def
-      base: "5.1"
-      rev: "+dfsg-4+b2"
+      base: "5.2"
+      rev: "+dfsg-3"
     fedora: &ver_fedora_def
-      base: "5.1.0"
-      rev: "7.fc34"
+      base: "5.2.0"
+      rev: "4.fc34"
 
 archs:
 
   amd64:
-    version:
-      debian: &ver_debian_b3
-        base: "5.1"
-        rev: "+dfsg-4+b3"
-      fedora: *ver_fedora_def
+    version: *ver_def
     alias:
       - x86_64
       - x86-64
@@ -77,9 +73,7 @@ archs:
     qemu: arm
 
   i386:
-    version:
-      debian: *ver_debian_b3
-      fedora: *ver_fedora_def
+    version: *ver_def
     alias:
       - i686
       - x86
@@ -94,24 +88,16 @@ archs:
     debian: ppc64el
 
   s390x:
-    version:
-      debian: &ver_debian_b1
-        base: "5.1"
-        rev: "+dfsg-4+b1"
-      fedora: *ver_fedora_def
+    version: *ver_def
     alias:
 
   mipsel:
-    version:
-      debian: *ver_debian_b1
-      fedora: *ver_fedora_def
+    version: *ver_def
     alias:
       - mips
 
   mips64le:
-    version:
-      debian: *ver_debian_b1
-      fedora: *ver_fedora_def
+    version: *ver_def
     alias:
       - mips64
       - mips64el
