@@ -24,9 +24,8 @@ class GetterFedora(Getter):
     """
 
     def __init__(self, archs):
-        self._archs = archs
+        super().__init__(archs)
         print("[GetterFedora] __init__", archs)
-        pass
 
     def get_package_binaries(self, host, bindir="bin-static"):
         """
