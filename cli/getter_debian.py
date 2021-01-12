@@ -44,9 +44,9 @@ class GetterDebian(Getter):
             bindir = Path(bindir)
         bindir.mkdir(parents=True, exist_ok=True)
 
-        check_call(
-            "curl -fsSL '%s' | dpkg --fsys-tarfile - | tar xvf - --wildcards ./usr/bin/qemu-*-static --strip-components=3"
-            % url,
-            shell=True,
-            cwd=bindir,
-        )
+        #check_call(
+        #    "curl -fsSL '%s' | dpkg --fsys-tarfile - | tar xvf - --wildcards ./usr/bin/qemu-*-static --strip-components=3"
+        #    % url,
+        #    shell=True,
+        #    cwd=bindir,
+        #)
