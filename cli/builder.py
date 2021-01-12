@@ -22,6 +22,9 @@ class Builder(Getter):
     Build allows building qus docker images for native or foreign architectures.
     """
 
+    def __init__(self, archs):
+        super().__init__(archs)
+
     def register_interpreter(self, host, target):
         """
         Register a foreign interpreter. To be used before building a foreign image.
